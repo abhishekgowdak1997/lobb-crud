@@ -137,7 +137,6 @@ class CityStore {
   
       if (response.ok) {
         const data = await response.json();
-        console.log("City updated successfully:", data);
         const normalizedPayloadCity = payload.city_name.trim().toLowerCase();
         const cityNames = this.data.map((city) =>
           city.city_name.trim().toLowerCase()
