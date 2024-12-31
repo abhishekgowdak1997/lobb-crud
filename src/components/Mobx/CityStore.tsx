@@ -37,15 +37,40 @@ class CityStore {
     this.branches = branches;
   }
 
-  filterData() {
-    this.filteredData = this.data.filter((row) => {
-      return (
-        (this.city ? row.city_name.toLowerCase().includes(this.city.toLowerCase()) : true) &&
-        (this.zone ? row.zone === this.zone : true) &&
-        (this.branch ? row.branch === this.branch : true)
+  async filterData() {
+    const params: Record<string, string> = {};
+  
+    if (this.city) {
+      params.city_name = this.city.trim();
+    }
+    if (this.zone) {
+      params.zone = this.zone.trim();
+    }
+    if (this.branch) {
+      params.branch = this.branch.trim();
+    }
+  
+    const queryString = new URLSearchParams(params).toString();
+  
+    try {
+      const response = await fetch(
+        `https://1a77d97a-9cb6-4ff6-9389-54c70d8bf298.mock.pstmn.io/pipe/city?${queryString}`
       );
-    });
+  
+      if (response.ok) {
+        const result = await response.json();
+        if (result.Data) {
+          this.filteredData = result.Data;
+        } else {
+          this.filteredData = [];
+        }
+      } else {
+      }
+    } catch (error) {
+      this.filteredData = [];
+    }
   }
+  
 
   async fetchData() {
     try {
@@ -57,7 +82,6 @@ class CityStore {
         this.setData(result.Data);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
     }
   }
 
@@ -71,11 +95,9 @@ class CityStore {
         this.setBranches(result.Data);
       }
     } catch (error) {
-      console.error("Error fetching branches:", error);
     }
   }
 
-  // Add City Method
   async addCity(payload: { city_name: string; zone: string; branch: string }) {
     try {
       const response = await fetch(
@@ -91,15 +113,12 @@ class CityStore {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("City added successfully:", data);
         this.data.push(payload);
-        this.filterData();
+        this.fetchData();
       } else {
         const errorData = await response.json();
-        console.error("Failed to add city:", errorData);
       }
     } catch (error) {
-      console.error("Error adding city:", error);
     }
   }
 
@@ -119,8 +138,6 @@ class CityStore {
       if (response.ok) {
         const data = await response.json();
         console.log("City updated successfully:", data);
-  
-        // Update the specific city in the local `data` array
         const normalizedPayloadCity = payload.city_name.trim().toLowerCase();
         const cityNames = this.data.map((city) =>
           city.city_name.trim().toLowerCase()
@@ -131,24 +148,17 @@ class CityStore {
           cityNames
         );
   
-        console.log("Best match for city_name:", bestMatch);
-  
         if (bestMatch.bestMatch.rating > 0.8) {
           const index = cityNames.indexOf(bestMatch.bestMatch.target);
           this.data[index] = { ...this.data[index], ...payload };
-          console.log("Updated city in local data:", this.data[index]);
-          this.filterData();
+          this.fetchData();
         } else {
-          console.warn(
-            `City not found or match too low for: ${payload.city_name}`
-          );
+      
         }
       } else {
         const errorData = await response.json();
-        console.error("Failed to update city:", errorData);
       }
     } catch (error) {
-      console.error("Error updating city:", error);
     }
   }
   

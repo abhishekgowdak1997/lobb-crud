@@ -27,6 +27,7 @@ const Component9 = observer(() => {
     zone: "",
     branch: "",
   });
+  
   useEffect(() => {
     cityStore.fetchData();
     cityStore.fetchBranches();
@@ -72,14 +73,6 @@ const Component9 = observer(() => {
     setAddModal(true);
   };
 
-  const handleSave = () => {
-    if (modalMode === "add") {
-      console.log("Adding City:", cityData);
-    } else if (modalMode === "edit") {
-      console.log("Editing City:", cityData);
-    }
-    setAddModal(false);
-  };
 
   return (
     <Pane>
@@ -128,15 +121,21 @@ const Component9 = observer(() => {
           Add City
         </Button>
         <Dialog
-          isShown={addModal}
-          title={modalMode === "add" ? "Add City" : "Edit City"}
-          onCloseComplete={() => setAddModal(false)}
-          confirmLabel={modalMode === "add" ? "Add City" : "Save Changes"}
-          cancelLabel="Cancel"
-          onConfirm={modalMode === "add" ? handleAddCity : handleEditCity}
-          onCancel={() => setAddModal(false)}
-          width={800}
-        >
+  isShown={addModal}
+  title={modalMode === "add" ? "Add City" : "Edit City"}
+  onCloseComplete={() => setAddModal(false)}
+  confirmLabel={modalMode === "add" ? "Add City" : "Save Changes"}
+  cancelLabel="Cancel"
+  onConfirm={modalMode === "add" ? handleAddCity : handleEditCity}
+  onCancel={() => setAddModal(false)}
+  width={800}
+  isConfirmDisabled={
+    modalMode === "add"
+      ? !(cityName.trim() && zone.trim() && branch.trim()) // Add mode: check required fields
+      : !(cityData.cityName.trim() && cityData.zone.trim() && cityData.branch.trim()) // Edit mode: check required fields
+  }
+>
+
           <Pane>
             <Paragraph marginBottom={16}>
               {modalMode === "add"
@@ -153,6 +152,7 @@ const Component9 = observer(() => {
                     ? setCityName(e.target.value)
                     : setCityData({ ...cityData, cityName: e.target.value })
                 }
+                disabled={modalMode === "edit"}
               />
               <Select
                 value={modalMode === "add" ? zone : cityData.zone}
